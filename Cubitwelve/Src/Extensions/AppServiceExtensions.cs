@@ -1,5 +1,6 @@
 using Cubitwelve.Src.Data;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL; //nuevo jej
 using DotNetEnv;
 using Cubitwelve.Src.Repositories;
 using Cubitwelve.Src.Repositories.Interfaces;
@@ -49,7 +50,7 @@ namespace Cubitwelve.Src.Extensions
             );
 
         }
-
+        /* ANTES USABA SQL SERVER
         private static void AddDbContext(IServiceCollection services)
         {
             var connectionUrl = Env.GetString("DB_CONNECTION");
@@ -63,6 +64,22 @@ namespace Cubitwelve.Src.Extensions
                     );
                 });
             });
+        }
+        */
+        //AHORA USO POSTGRESQL
+      private static void AddDbContext(IServiceCollection services)
+        {
+            var connectionUrl = Env.GetString("DB_CONNECTION");
+
+            services.AddDbContext<DataContext>(opt => {
+                opt.UseNpgsql(connectionUrl, npgsqlOpt => {
+                    // ✅ Solo con maxRetryCount
+                    npgsqlOpt.EnableRetryOnFailure(maxRetryCount: 10);
+                });
+            });
+
+        // ✅ AGREGAR ESTO
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         }
 
         private static void AddUnitOfWork(IServiceCollection services)
